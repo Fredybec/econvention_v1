@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || '3310'),
+  port: Number(process.env.DB_PORT || '3306'),
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'fst_records',
@@ -43,7 +43,7 @@ class Storage {
       // 1. Ensure Database exists
       const tempConn = await mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
-        port: Number(process.env.DB_PORT || '3310'),
+        port: Number(process.env.DB_PORT || '3306'),
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || 'admin',
       });
@@ -329,22 +329,21 @@ class Storage {
     // Default password for seeded accounts
     const salt = await bcrypt.genSalt(10);
     const defaultHashedPassword = await bcrypt.hash("fst2025", salt);
-    const adminHashedPassword = await bcrypt.hash("adminFST2025", salt);
 
     // Initial Seed of Users
     const seedUsers = [
       {
         id: "admin-1",
-        email: "asri.bachir@gmail.com",
+        email: "admin@uca.ac.ma",
         name: "Super Admin",
         roles: [Role.SUPERADMIN],
         isEligible: true,
         isStudent: false,
-        password: adminHashedPassword
+        password: defaultHashedPassword
       },
       {
         id: "respo-info-1",
-        email: "respo.info@fst.ma",
+        email: "respo.info@uca.ac.ma",
         name: "Responsable Informatique (Chef Dept & Encadrant)",
         roles: [Role.ENCADRANT_FST, Role.CHEF_DEPARTEMENT],
         department: "Informatique",
@@ -354,7 +353,7 @@ class Storage {
       },
       {
         id: "scolarite-1",
-        email: "scolarite@fst.ma",
+        email: "scolarite@uca.ac.ma",
         name: "Service Scolarité",
         roles: [Role.SCOLARITE],
         isEligible: false,
@@ -363,7 +362,7 @@ class Storage {
       },
       {
         id: "service-stage-1",
-        email: "service.stage@fst.ma",
+        email: "service.stage@uca.ac.ma",
         name: "Service Stage",
         roles: [Role.SERVICE_RECHERCHE_COOP],
         isEligible: false,
@@ -372,7 +371,7 @@ class Storage {
       },
       {
         id: "vdp-1",
-        email: "vdp@fst.ma",
+        email: "vdp@uca.ac.ma",
         name: "Vice Doyen Pédagogie",
         roles: [Role.VICE_DOYEN_PEDAGOGIE],
         isEligible: false,
@@ -381,7 +380,7 @@ class Storage {
       },
       {
         id: "secretariat-doyen-1",
-        email: "secretariat.doyen@fst.ma",
+        email: "secretariat.doyen@uca.ac.ma",
         name: "Secrétariat Doyen",
         roles: [Role.SECRETARIAT_DOYEN],
         isEligible: false,
@@ -390,7 +389,7 @@ class Storage {
       },
       {
         id: "support-1",
-        email: "support@fst.ma",
+        email: "support@uca.ac.ma",
         name: "Support Technique",
         roles: [Role.SUPPORT],
         isEligible: false,
@@ -403,6 +402,38 @@ class Storage {
         name: "Étudiant Informatique",
         roles: [Role.STUDENT],
         department: "Informatique",
+        filiere: "MST Informatique (SIR)",
+        currentLevel: "Licence 3",
+        massarCode: "G140022135",
+        appogeeCode: "2009856",
+        isEligible: true,
+        isStudent: true,
+        password: defaultHashedPassword
+      },
+      {
+        id: "student-info-2",
+        email: "student2.info@uca.ac.ma",
+        name: "Etudiant Info 2",
+        roles: [Role.STUDENT],
+        department: "Informatique",
+        filiere: "LST Informatique",
+        currentLevel: "Licence 3",
+        massarCode: "G130045678",
+        appogeeCode: "21012345",
+        isEligible: true,
+        isStudent: true,
+        password: defaultHashedPassword
+      },
+      {
+        id: "student-info-3",
+        email: "student3.info@uca.ac.ma",
+        name: "Etudiant Info 3",
+        roles: [Role.STUDENT],
+        department: "Informatique",
+        filiere: "MST Informatique (SIR)",
+        currentLevel: "Master 2",
+        massarCode: "G130098765",
+        appogeeCode: "19056789",
         isEligible: true,
         isStudent: true,
         password: defaultHashedPassword
@@ -414,19 +445,55 @@ class Storage {
       const existingUser = await this.query("SELECT id FROM users WHERE email = ?", [u.email]);
       if (!existingUser || existingUser.length === 0) {
         await this.query(
-          `INSERT INTO users (id, email, name, roles, isEligible, isStudent, department, password) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [u.id, u.email, u.name, JSON.stringify(u.roles), u.isEligible ? 1 : 0, u.isStudent ? 1 : 0, u.department || null, u.password]
+          `INSERT INTO users (id, email, name, roles, isEligible, isStudent, department, filiere, currentLevel, massarCode, appogeeCode, password) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            u.id, u.email, u.name, JSON.stringify(u.roles),
+            u.isEligible ? 1 : 0, u.isStudent ? 1 : 0,
+            u.department || null, u.filiere || null,
+            u.currentLevel || null, u.massarCode || null,
+            u.appogeeCode || null, u.password
+          ]
         );
         console.log(`[MARIADB] Created seeded user: ${u.email}`);
       } else {
         // Update password for existing users if it's the admin or if we want to ensure seed state
         await this.query(
-          "UPDATE users SET roles = ?, password = ?, name = ?, department = ? WHERE email = ?",
-          [JSON.stringify(u.roles), u.password, u.name, u.department || null, u.email]
+          "UPDATE users SET roles=?, password=?, name=?, department=?, filiere=?, currentLevel=?, massarCode=?, appogeeCode=? WHERE email=?",
+          [
+            JSON.stringify(u.roles), u.password, u.name,
+            u.department || null, u.filiere || null,
+            u.currentLevel || null, u.massarCode || null,
+            u.appogeeCode || null, u.email
+          ]
         );
         console.log(`[MARIADB] Updated seeded user state: ${u.email}`);
       }
+    }
+
+    // Seed initial Eligibility Criteria if empty
+    const eligibilityExists = await this.query("SELECT * FROM eligibility_criteria LIMIT 1");
+    if (!eligibilityExists || eligibilityExists.length === 0) {
+      const initialCriteria: EligibilityCriteria[] = [
+        {
+          id: "elig-pfe-licence3-pedagogie",
+          type: StageType.PFE,
+          nature: ConventionNature.PEDAGOGIE,
+          levels: ["Licence 3"],
+          description: "Éligibilité au stage PFE Pédagogie pour les étudiants en Licence 3",
+          isActive: true
+        },
+        {
+          id: "elig-pfe-master2-recherche",
+          type: StageType.PFE,
+          nature: ConventionNature.RECHERCHE,
+          levels: ["Master 2"],
+          description: "Éligibilité au stage PFE Recherche pour les étudiants en Master 2",
+          isActive: true
+        }
+      ];
+      await this.saveEligibilityCriteria(initialCriteria);
+      console.log("[MARIADB] Seeded initial eligibility criteria.");
     }
 
     // Seed initial Config if empty
