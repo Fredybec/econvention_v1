@@ -1,4 +1,5 @@
-
+import dotenv from 'dotenv';
+dotenv.config();
 import { 
   User, PFERecord, SystemConfig, ConventionTemplate, 
   Notification, SupportQuestion, EligibilityCriteria, EligibilityOverride,
@@ -8,11 +9,11 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'admin',
-  database: process.env.DB_NAME || 'fst_records',
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -37,15 +38,15 @@ class Storage {
    * Also ensures the database exists.
    */
   async migrateMARIADB(): Promise<void> {
-    const dbName = process.env.DB_NAME || 'fst_records';
+    const dbName = process.env.DB_NAME;
     
     try {
       // 1. Ensure Database exists
       const tempConn = await mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        port: Number(process.env.DB_PORT || '3306'),
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || 'admin',
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
       });
       await tempConn.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
       await tempConn.end();
