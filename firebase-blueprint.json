@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "SystemConfig": {
+      "title": "System Configuration",
+      "description": "Global settings for the FST e-Convention system",
+      "type": "object",
+      "properties": {
+        "departments": { "type": "array", "items": { "type": "string" } },
+        "filieres": { "type": "array", "items": { "type": "string" } },
+        "semestres": { "type": "array", "items": { "type": "string" } },
+        "niveaux": { "type": "array", "items": { "type": "string" } },
+        "academicYears": { "type": "array", "items": { "type": "string" } },
+        "currentYear": { "type": "string" },
+        "entreprises": { "type": "array", "items": { "$ref": "#/entities/Entreprise" } }
+      },
+      "required": ["departments", "filieres", "semestres", "niveaux", "academicYears", "currentYear", "entreprises"]
+    },
+    "Entreprise": {
+      "title": "Entreprise",
+      "description": "Information about a company hosting interns",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" }
+      },
+      "required": ["id", "name", "address"]
+    },
+    "ConventionArticle": {
+      "title": "Convention Article",
+      "description": "A single article in the convention with a title and content",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["id", "title", "content"]
+    },
+    "ConventionTemplate": {
+      "title": "Convention Template",
+      "description": "The visual and textual template for generating convention PDFs",
+      "type": "object",
+      "properties": {
+        "header": { "type": "string" },
+        "deanName": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "referencePrefix": { "type": "string" },
+        "pfeArticles": { "type": "array", "items": { "$ref": "#/entities/ConventionArticle" } },
+        "pfaArticles": { "type": "array", "items": { "$ref": "#/entities/ConventionArticle" } },
+        "footer": { "type": "string" },
+        "fontSize": { "type": "number" },
+        "lineHeight": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/config/system": {
+      "schema": "SystemConfig",
+      "description": "Global system configuration"
+    },
+    "/config/template": {
+      "schema": "ConventionTemplate",
+      "description": "Convention document template"
+    }
+  }
+}

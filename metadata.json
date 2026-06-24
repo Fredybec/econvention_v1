@@ -1,0 +1,5 @@
+{
+  "name": "e-Convention - FST Marrakech",
+  "description": "Plateforme de gestion dématérialisée des conventions de stage PFE pour la Faculté des Sciences et Techniques de Marrakech.",
+  "requestFramePermissions": ["camera"]
+}

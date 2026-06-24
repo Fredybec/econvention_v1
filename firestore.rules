@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'asri.bachir@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Config collection
+    match /config/{configId} {
+      // Allow truly public read for system config and template
+      allow read: if true;
+      
+      // Only admins can write config
+      // Note: We check specifically for the admin email to allow initial bootstrap
+      allow write: if isAdmin();
+    }
+    
+    // Admins collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Default deny for all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
